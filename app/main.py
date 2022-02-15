@@ -1,3 +1,4 @@
+from operator import index
 from typing import Optional
 from fastapi import Body, FastAPI, Response, status, HTTPException
 from pydantic import BaseModel
@@ -22,6 +23,11 @@ def find_post(id):
         if post["id"] == (id):
             return post
 
+def find_index_post(id):
+    for index, post in enumerate(my_posts):
+        if post["id"] == (id):
+            return index
+
 @app.get("/posts")
 def get_posts():
     return {"data":"Your posts"}
@@ -44,3 +50,23 @@ def get_post(id: int, response: Response):
     # for post in my_posts:
     #     if post["id"] == id:
     #         return {"data": post}
+
+@app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_post(id: int):
+    post = find_post(id)
+    if not post:
+        raise HTTPException(status_code=404, detail=f"Post with ID: {id} not found")
+    
+    my_posts.remove(post)
+    return Response(status_code = status.HTTP_204_NO_CONTENT)
+
+@app.put("/posts/{id}")
+def update_post(id: int, post: Post):
+    index = find_index_post(id)
+    if index is None:
+        raise HTTPException(status_code=404, detail=f"Post with ID: {id} not found")
+
+    post_dict = post.dict()
+    post_dict["id"] = id
+    my_posts[index] = post_dict
+    return {"data": post_dict}
