@@ -1,13 +1,13 @@
-from operator import index
 from typing import Optional
 from fastapi import Body, FastAPI, Response, status, HTTPException
 from pydantic import BaseModel
 from random import randrange
+import psycopg2
+from psycopg2.extras import RealDictCursor
+import time
+
 app = FastAPI()
 
-
-my_posts = [{"title": "Top laptops", "content": "Amazing laptops of this year", "published": True, "rating": 7.4, "id": 1},
-            {"title": "Top restaurant chains", "content": "Amazing restaurant chains you have to try", "published": True, "rating": 7.1, "id": 2},]
 @app.get("/")
 def root():
     return {"message":"Hello World"}
@@ -16,7 +16,20 @@ class Post(BaseModel):
     title:str
     content:str
     published:bool = True
-    rating:Optional[float] = None
+while True:
+    try:
+        conn = psycopg2.connect(host="localhost", database="x", user="x", password="x", cursor_factory=RealDictCursor)
+        cursor = conn.cursor()
+        print("Connected to the database!")
+        break
+    except Exception as e:
+        print("Unable to connect to the database")
+        print(e)
+        time.sleep(3)
+
+
+my_posts = [{"title": "Top laptops", "content": "Amazing laptops of this year", "published": True, "rating": 7.4, "id": 1},
+            {"title": "Top restaurant chains", "content": "Amazing restaurant chains you have to try", "published": True, "rating": 7.1, "id": 2}]
 
 def find_post(id):
     for post in my_posts:
@@ -30,7 +43,10 @@ def find_index_post(id):
 
 @app.get("/posts")
 def get_posts():
-    return {"data":"Your posts"}
+    posts = cursor.execute("SELECT * FROM posts")
+    posts = cursor.fetchall()
+    print(posts)
+    return {"data": posts}
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
 def create_posts(post:Post):
