@@ -5,3 +5,8 @@ alembic
 pydantic
 psycopg2
 Jinja2
+python-dateutil
+python-dotenv
+python-editor
+python-jose
+python-multipart
